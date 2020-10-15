@@ -9,47 +9,36 @@ end
 % Improves Fiber Detection
 for i = 1 : size(im,3);
 B(:,:,i) = fibermetric(im(:,:,i),4,'ObjectPolarity','bright','StructureSensitivity',6);
-imshowpair(im(:,:,i),B(:,:,i), 'montage');
+%imshowpair(im(:,:,i),B(:,:,i), 'montage');
 end
-figure
-imshowpair(max(im, [],3), max(B,[],3), 'montage');
-
+% figure
+% imshowpair(max(im, [],3), max(B,[],3), 'montage');
 
 BW = imbinarize(B); % Not sure how to binarize...
+
 % Need to filter small objects
-% labeledImage = bwlabel(BW, 8);
-% imshow(labeledImage, []);
-
-ConnectedComponents=bwconncomp(BW); % Find the cells, not sure how to optimize
-labeled = labelmatrix(ConnectedComponents);
-% stats = regionprops3(ConnectedComponents);
-
-%RGB_label = label2rgb(labeled,@copper,'BW','shuffle');
-%imshow(RGB_label)
-% biggest = bwareafilt(ConnectedComponents);
-% imshow(biggest);
-%% ALL THIS IS JUNK/ PLAYING AROUND TO HELP SEGMENTATION
-
-
-
-se = strel('disk',15);
-closeBW = imclose(BW,se);
-
-figure
-imshowpair(max(BW, [],3), max(closeBW,[],3), 'montage');
-
-% figure
-% imshowpair(max(BW, [],3), max(closeBW,[],3), 'montage');
-
-ConnectedComponents=bwconncomp(closeBW,16); %returns structure with 4 fields. PixelIdxList contains a 1-by-NumObjects cell array where the k-th element in the cell array is a vector containing the linear indices of the pixels in the k-th object. 26 defines connectivity. This looks at cube of connectivity around pixel.
+BW2 = bwareaopen(BW, 10000); % Removes all small objects from image <10000
+ConnectedComponents=bwconncomp(BW2); % Find the cells, not sure how to optimize
+stats = regionprops3(ConnectedComponents); % Some stats about the cells
 numObj = numel(ConnectedComponents.PixelIdxList); %PixelIdxList is field with list of pixels in each connected component. Find how many connected components there are.
+
+for i=1:length(numObj)
+[Stack(:,:,i),map]=imread('C2-772_str.tif',i);
+BWW =bwlabeln(ConnectedComponents); 
+s=regionprops(BWW,'Centroid');
+end
+
+% figure;
 disp(numObj);
+s=regionprops(ConnectedComponents,centroid);
+
+% ex contains each cell extracted in 3D. This will need to be used for
+% volumetric reconstruction and skeletonization.
 for i = 1:numObj
     ex=zeros(size(im,1),size(im,2),size(im,3));
-    ex(ConnectedComponents.PixelIdxList{1,i})=1;%write in only one object to image. Cells are white on black background.
+    ex(ConnectedComponents.PixelIdxList{1,i})=1; %write in only one object to image. Cells are white on black background.
     flatex = sum(ex,3);
     allObjs(:,:,i) = flatex(:,:); 
-    show(i);
 end
 
 DetectedObjs = sum(allObjs,3);
@@ -57,37 +46,9 @@ cmapCompress = parula(max(DetectedObjs(:)));
 cmapCompress(1,:) = zeros(1,3);
 
 figure
-imshow(allobjs)
+imshow(DetectedObjs,cmapCompress)
 
-
-if ShowImg == 1    
-    title = [file,'_Threshold (compressed to 2D)'];
-    figure('Name',title);imagesc(DetectedObjs);
-    colormap(jet);
-    daspect([1 1 1]);
-end
-
-
-
-
-
-
-
-imshowpair(max(im, [], 3), max(B, [], 3), 'montage')
-
-
-T = adaptthresh(im, 0.1);
-BW = imbinarize(im,T);
-
+% WHY DOES THIS SHOW SUCH A BEAUTIFUL IMAGE ON THE LEFT???
 figure
-imshowpair(max(im, [], 3), max(BW, [], 3), 'montage')
-
-
-params.bz_thresh = -0;
-params.as_scale = 1/4;
-params.debug = 1; % show all figures
-test=bwsmooth(BW(:,:,30),params);
-
-figure(1),
-imshowpair(BW(:,:,30), test, 'montage');
-title( 'Original binarized image (Left) and Smoothed image (Right)' );
+BW3 = bwmorph(allObjs(:,:,8),'skel',Inf);
+imshowpair(allObjs(:,:,8), BW3, 'montage');
