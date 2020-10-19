@@ -16,17 +16,43 @@ end
 
 BW = imbinarize(B); % Not sure how to binarize...
 
+
 % Need to filter small objects
 BW2 = bwareaopen(BW, 10000); % Removes all small objects from image <10000
 ConnectedComponents=bwconncomp(BW2); % Find the cells, not sure how to optimize
 stats = regionprops3(ConnectedComponents); % Some stats about the cells
 numObj = numel(ConnectedComponents.PixelIdxList); %PixelIdxList is field with list of pixels in each connected component. Find how many connected components there are.
 
+
+%% Calculating Centroids
 for i=1:length(numObj)
 [Stack(:,:,i),map]=imread('C2-772_str.tif',i);
-BWW =bwlabeln(ConnectedComponents); 
+BWW =bwlabeln(B); 
 s=regionprops(BWW,'Centroid');
 end
+
+bw1 = bwareafilt(BWW, 1, 'largest');
+
+
+
+%% Using ismember
+% Measure all the volumes.
+measurements = regionprops(BWW, 'Area');
+% Get all areas
+allAreas = [measurements.Area];
+% Sort them in descending order
+[sortedVolumes, sortIndices] = sort(allAreas, 'Descend');
+% Now relabel the labeled image with intlut
+labeledImage = bwlabeln(BWW);
+% Now get largest blobs
+big1 = ismember(labeledImage, 1);
+big2 = ismember(labeledImage, 2);
+big3 = ismember(labeledImage, 3);
+big4 = ismember(labeledImage, 4);
+figure
+disp(big1);
+
+%% Original code
 
 % figure;
 disp(numObj);
