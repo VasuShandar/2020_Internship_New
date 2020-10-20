@@ -1,3 +1,4 @@
+
 function skel = Skeleton3D(skel,spare)
 % SKELETON3D Calculate the 3D skeleton of an arbitrary binary volume using parallel medial axis thinning.
 %
