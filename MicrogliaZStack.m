@@ -31,7 +31,7 @@ BWW =bwlabeln(B);
 s=regionprops(BWW,'Centroid');
 end
 
-bw1 = bwareafilt(BWW, 1, 'largest');
+% bw1 = bwareafilt(BWW, 1, 'largest');
 
 
 
@@ -50,23 +50,23 @@ big2 = ismember(labeledImage, 2);
 big3 = ismember(labeledImage, 3);
 big4 = ismember(labeledImage, 4);
 figure
-disp(big1);
+imshow(big1);
 
 %% Original code
 
-% figure;
+numObj = numel(ConnectedComponents.PixelIdxList); %PixelIdxList is field with list of pixels in each connected component. Find how many connected components there are.
 disp(numObj);
-s=regionprops(ConnectedComponents,centroid);
 
 % ex contains each cell extracted in 3D. This will need to be used for
 % volumetric reconstruction and skeletonization.
 for i = 1:numObj
     ex=zeros(size(im,1),size(im,2),size(im,3));
     ex(ConnectedComponents.PixelIdxList{1,i})=1; %write in only one object to image. Cells are white on black background.
+    skeleton = Skeleton3D(ex);
     flatex = sum(ex,3);
     allObjs(:,:,i) = flatex(:,:); 
 end
-
+imshow(allObjs);
 DetectedObjs = sum(allObjs,3);
 cmapCompress = parula(max(DetectedObjs(:)));  
 cmapCompress(1,:) = zeros(1,3);
