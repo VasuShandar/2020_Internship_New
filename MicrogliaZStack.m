@@ -62,7 +62,7 @@ disp(numObj);
 for i = 1:numObj
     ex=zeros(size(im,1),size(im,2),size(im,3));
     ex(ConnectedComponents.PixelIdxList{1,i})=1; %write in only one object to image. Cells are white on black background.
-    skeleton = Skeleton3D(ex);
+    % skeleton = Skeleton3D(ex);
     flatex = sum(ex,3);
     allObjs(:,:,i) = flatex(:,:); 
 end
