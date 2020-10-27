@@ -16,16 +16,16 @@ for row = 1:(size(Date1020)-1)
     % value at the same row but second column and append to T
     if num2str(Date1020{row,1}) == "Start Date"
         i = i +1;
-       T(i,3)= (Date1020(row,2));
+       Date(i,1)= datetime(Date1020{row,2});
     end
     % take value at column next to instance of string and sort by gender
     if num2str(Date1020{row,1}) == "Box"
         j = j +1;
-       T{j,1}= (Date1020{row,2});
-       if num2str(T{j, 1})== "1" ||num2str(T{j, 1})== "2" ||num2str(T{j, 1})== "3" ||num2str(T{j,1})== "4" 
-           T{j, 2} = "Female";
+       Box(j,1)= (Date1020{row,2});
+       if Box(j,1) < 5
+           Sex(j, 1) = categorical("Female");
        else 
-           T{j, 2} = "Male";
+           Sex(j, 1) = categorical("Male");
        end 
    
     end
@@ -36,17 +36,17 @@ for row = 1:(size(Date1020)-1)
        D = strsplit(num2str(Date1020{row+2,2}));
        E = strsplit(num2str(Date1020{row+3,2}));
 
-       T{h, 4} = C{2};       
-       T{h, 5} = C{6};
-       T{h, 6} = D{6};
-       T{h, 7} = E{2};
-       T{h, 8} = E{3};
+       Infusions(h, 1) = str2num(C{2});       
+       HeadEntries(h, 1) = str2num(C{6});
+       Latency(h, 1) = str2num(D{6});
+       ActiveLever(h, 1) = str2num(E{2});
+       InactiveLever(h, 1) = str2num(E{3});
    end 
 
 
     
 end
-a = T;
+a = table(Box,Date,Sex,Infusions,HeadEntries,Latency,ActiveLever,InactiveLever);
 end
 
 
