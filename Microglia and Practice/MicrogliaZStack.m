@@ -19,9 +19,51 @@ BW = imbinarize(B); % Not sure how to binarize...
 
 % Need to filter small objects
 BW2 = bwareaopen(BW, 10000); % Removes all small objects from image <10000
-ConnectedComponents=bwconncomp(BW2); % Find the cells, not sure how to optimize
+ConnectedComponents=bwconncomp(BW2,26); %returns structure with 4 fields. PixelIdxList contains a 1-by-NumObjects cell array where the k-th element in the cell array is a vector containing the linear indices of the pixels in the k-th object. 26 defines connectivity. This looks at cube of connectivity around pixel.
 stats = regionprops3(ConnectedComponents); % Some stats about the cells
 numObj = numel(ConnectedComponents.PixelIdxList); %PixelIdxList is field with list of pixels in each connected component. Find how many connected components there are.
+   for i = 1:numObj
+    ObjectList(i,1) = length(ConnectedComponents.PixelIdxList{1,i}); 
+    ObjectList(i,2) = i;  
+    end
+    ObjectList = sortrows(ObjectList,-1);%Sort columns by pixel size.
+%     ObjectList = sortrows(ObjectList,'descend'); %Sort columns by pixel size. 
+    udObjectList = flipud(ObjectList);%ObjectList is large to small, flip upside down so small is plotted first in blue.
+    
+for i = 1:numObjSep
+    SepObjectList(i,1) = length(Microglia{1,i}); 
+    SepObjectList(i,2) = i;  
+end
+    SepObjectList = sortrows(SepObjectList,-1); %Sort columns by pixel size. 
+    udSepObjectList = flipud(SepObjectList);%ObjectList is large to small, flip upside down so small is plotted first in blue.
+
+%% Code from 3DMorph to display 3D individual objects
+individual=bwconncomp(BW2,26);
+for m = 1:35
+                Microglia{1,col}=individual.PixelIdxList{1,m}; %Write this separated object to new cell array, Microglia in location 'col'.
+                col=col+1; %Increase the col counter so data is not overwritten.
+end
+               
+
+numObjSep = numel(Microglia); %Rewrite the number of objects to include segmented cells.
+    title = [file,'_Selected Cells'];
+    figure('Name',title);
+    colormap(cmap);
+    for i = 1:numObjSep
+        ex=zeros(s(1),s(2),zs);%Create blank image of correct size
+        j=udSepObjectList(i,2);
+        ex(Microglia{1,j})=1;%write in only one object to image. Cells are white on black background.
+        ds = size(ex);
+        fv=isosurface(ex,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
+        patch(fv,'FaceColor',cmap(i*3,:),'FaceAlpha',1,'EdgeColor','none');%without edgecolour, will auto fill black, and all objects appear black
+        axis([0 ds(1) 0 ds(2) 0 ds(3)]);%specify the size of the image
+        camlight %To add lighting/shading
+        lighting gouraud; %Set style of lighting. This allows contours, instead of flat lighting
+        view(0,270); % Look at image from top viewpoint instead of side  
+        daspect([1 1 1]);
+        colorbar('Ticks',[0,1], 'TickLabels',{'Small','Large'});
+    end 
+
 
 
 %% Calculating Centroids
@@ -50,7 +92,7 @@ big2 = ismember(labeledImage, 2);
 big3 = ismember(labeledImage, 3);
 big4 = ismember(labeledImage, 4);
 figure
-imshow(big1);
+% imshow(big1);
 
 %% Original code
 
