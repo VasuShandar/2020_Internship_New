@@ -25,9 +25,22 @@ for i=1:length(Files)
     end
 end
 
+
+
 cd('Figures');
 
-[~,~,rnk] = unique(day(MT.Date))
+[~,~,rnk] = unique(day(MT.Date));
+
+g=gramm('x',rnk,'y',MT.Infusions);
+%g.stat_smooth('geom','area');
+g.stat_summary('geom',{'errorbar','point'},'type','sem','dodge',.5,'setylim',1);
+g.axe_property('LineWidth',1.5,'FontSize',12);
+g.axe_property('tickdir','out');
+g.set_names('x','Training Day','y','Rewards','color','Sex');
+g.set_text_options('base_size',14,'interpreter','none');
+g.set_color_options('map','lch','hue_range',[25 385]+25);
+figure('Position',[1 1 400 300]);
+g.draw();
 
 g=gramm('x',rnk,'y',MT.Infusions,'color',MT.Sex);
 %g.stat_smooth('geom','area');
