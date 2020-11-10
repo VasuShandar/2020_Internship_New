@@ -24,35 +24,22 @@ stats = regionprops3(ConnectedComponents); % Some stats about the cells
 numObj = numel(ConnectedComponents.PixelIdxList); %PixelIdxList is field with list of pixels in each connected component. Find how many connected components there are.
    for i = 1:numObj
     ObjectList(i,1) = length(ConnectedComponents.PixelIdxList{1,i}); 
-    ObjectList(i,2) = i;  
-    end
+   end
     ObjectList = sortrows(ObjectList,-1);%Sort columns by pixel size.
-%     ObjectList = sortrows(ObjectList,'descend'); %Sort columns by pixel size. 
-    udObjectList = flipud(ObjectList);%ObjectList is large to small, flip upside down so small is plotted first in blue.
     
-
-
 %% Code from 3DMorph to display 3D individual objects
 individual=bwconncomp(BW2,26);
-numObjSep = numel(Microglia); %Rewrite the number of objects to include segmented cells.
+col=1;
 for m = 1:35
-                Microglia{1,col}=individual.PixelIdxList{1,m}; %Write this separated object to new cell array, Microglia in location 'col'.
-                col=col+1; %Increase the col counter so data is not overwritten.
+        Microglia{1,col}=ConnectedComponents.PixelIdxList{1,i}; %Write the object to new cell array, Microglia in location 'col'.
 end
-for i = 1:numObjSep
-    SepObjectList(i,1) = length(Microglia{1,i}); 
-    SepObjectList(i,2) = i;  
-end
-    SepObjectList = sortrows(SepObjectList,-1); %Sort columns by pixel size. 
-    udSepObjectList = flipud(SepObjectList);%ObjectList is large to small, flip upside down so small is plotted first in blue.               
-
-
-    title = [file,'_Selected Cells'];
+imshow(Microglia{1,2});
+    title = ['_Selected Cells'];
     figure('Name',title);
-    colormap(cmap);
-    for i = 1:numObjSep
-        ex=zeros(s(1),s(2),zs);%Create blank image of correct size
-        j=udSepObjectList(i,2);
+    for i = 1:numObj
+        
+        ex=zeros(40, 40,95);%Create blank image of correct size
+        j=ObjectList(i,2);
         ex(Microglia{1,j})=1;%write in only one object to image. Cells are white on black background.
         ds = size(ex);
         fv=isosurface(ex,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
@@ -60,8 +47,8 @@ end
         axis([0 ds(1) 0 ds(2) 0 ds(3)]);%specify the size of the image
         camlight %To add lighting/shading
         lighting gouraud; %Set style of lighting. This allows contours, instead of flat lighting
-        view(0,270); % Look at image from top viewpoint instead of side  
-        daspect([1 1 1]);
+        view(0,270); % Lookf at image from top viewpoint instead of side  
+        daspect([1 1 1]);f
         colorbar('Ticks',[0,1], 'TickLabels',{'Small','Large'});
     end 
 
