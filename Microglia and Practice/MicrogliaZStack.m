@@ -29,6 +29,7 @@ numObj = numel(ConnectedComponents.PixelIdxList); %PixelIdxList is field with li
     
 %% Code from 3DMorph to display 3D individual objects
 individual=bwconncomp(BW2,26);
+<<<<<<< HEAD
 s = size(im);
 ex=zeros(s(1),s(2),s(3));
 numObj=ConnectedComponents.NumObjects;
@@ -63,6 +64,16 @@ end
 
 ex(ConnectedComponents.PixelIdxList{1,i})=1;
 
+=======
+col=1;
+s = size
+    for i = 1:numObj
+        ex=zeros(s(1),s(2),zs);
+        ex(Microglia{1,i})=1;%write in only one object to image. Cells are white on black background.
+        flatex = sum(ex,3);
+        AllSeparatedObjs(:,:,i) = flatex(:,:); 
+    end
+>>>>>>> c2b4ab8d123990b2e1babdb5ae14fb663ebc87c3
     title = ['_Selected Cells'];
     figure('Name',title);
     
@@ -124,7 +135,7 @@ for i = 1:numObj
     BW2 = bwareaopen(BW, 10000); % Removes all small objects from image <10000
     ConnectedComponents1 =bwconncomp(BW(:,:,j),26);
     ex=zeros(size(im,1),size(im,2),size(im,3));
-    ex(ConnectedComponents.PixelIdxList{1,i})=1; %write in only one object to image. Cells are white on black background.
+    ex(ConnectedComponents1.PixelIdxList{1,i})=1; %write in only one object to image. Cells are white on black background.
     % skeleton = Skeleton3D(ex);
     flatex = sum(ex,3);
     allObjs(:,:,i) = flatex(:,:); 
