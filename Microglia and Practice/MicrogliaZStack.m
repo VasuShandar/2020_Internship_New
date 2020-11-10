@@ -33,7 +33,6 @@ col=1;
 for m = 1:35
         Microglia{1,col}=ConnectedComponents.PixelIdxList{1,i}; %Write the object to new cell array, Microglia in location 'col'.
 end
-imshow(Microglia{1,2});
     title = ['_Selected Cells'];
     figure('Name',title);
     for i = 1:numObj
@@ -89,12 +88,17 @@ disp(numObj);
 
 % ex contains each cell extracted in 3D. This will need to be used for
 % volumetric reconstruction and skeletonization.
-for i = 1:numObj
+for j = 1:95 
+    
+for i = 1:numObj  
+    BW2 = bwareaopen(BW, 10000); % Removes all small objects from image <10000
+    ConnectedComponents1 =bwconncomp(BW(:,:,j),26);
     ex=zeros(size(im,1),size(im,2),size(im,3));
     ex(ConnectedComponents.PixelIdxList{1,i})=1; %write in only one object to image. Cells are white on black background.
     % skeleton = Skeleton3D(ex);
     flatex = sum(ex,3);
     allObjs(:,:,i) = flatex(:,:); 
+end
 end
 DetectedObjs = sum(allObjs,3);
 cmapCompress = parula(max(DetectedObjs(:)));  
