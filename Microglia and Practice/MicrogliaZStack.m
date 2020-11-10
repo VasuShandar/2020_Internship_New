@@ -30,22 +30,23 @@ numObj = numel(ConnectedComponents.PixelIdxList); %PixelIdxList is field with li
 %     ObjectList = sortrows(ObjectList,'descend'); %Sort columns by pixel size. 
     udObjectList = flipud(ObjectList);%ObjectList is large to small, flip upside down so small is plotted first in blue.
     
+
+
+%% Code from 3DMorph to display 3D individual objects
+individual=bwconncomp(BW2,26);
+numObjSep = numel(Microglia); %Rewrite the number of objects to include segmented cells.
+for m = 1:35
+                Microglia{1,col}=individual.PixelIdxList{1,m}; %Write this separated object to new cell array, Microglia in location 'col'.
+                col=col+1; %Increase the col counter so data is not overwritten.
+end
 for i = 1:numObjSep
     SepObjectList(i,1) = length(Microglia{1,i}); 
     SepObjectList(i,2) = i;  
 end
     SepObjectList = sortrows(SepObjectList,-1); %Sort columns by pixel size. 
-    udSepObjectList = flipud(SepObjectList);%ObjectList is large to small, flip upside down so small is plotted first in blue.
+    udSepObjectList = flipud(SepObjectList);%ObjectList is large to small, flip upside down so small is plotted first in blue.               
 
-%% Code from 3DMorph to display 3D individual objects
-individual=bwconncomp(BW2,26);
-for m = 1:35
-                Microglia{1,col}=individual.PixelIdxList{1,m}; %Write this separated object to new cell array, Microglia in location 'col'.
-                col=col+1; %Increase the col counter so data is not overwritten.
-end
-               
 
-numObjSep = numel(Microglia); %Rewrite the number of objects to include segmented cells.
     title = [file,'_Selected Cells'];
     figure('Name',title);
     colormap(cmap);
@@ -108,7 +109,6 @@ for i = 1:numObj
     flatex = sum(ex,3);
     allObjs(:,:,i) = flatex(:,:); 
 end
-imshow(allObjs);
 DetectedObjs = sum(allObjs,3);
 cmapCompress = parula(max(DetectedObjs(:)));  
 cmapCompress(1,:) = zeros(1,3);
@@ -118,5 +118,5 @@ imshow(DetectedObjs,cmapCompress)
 
 % WHY DOES THIS SHOW SUCH A BEAUTIFUL IMAGE ON THE LEFT???
 figure
-BW3 = bwmorph(allObjs(:,:,8),'skel',Inf);
-imshowpair(allObjs(:,:,8), BW3, 'montage');
+BW3 = bwmorph(allObjs(:,:,22),'skel',Inf);
+imshowpair(allObjs(:,:,33), BW3, 'montage');
