@@ -1,4 +1,3 @@
-
 function skel = Skeleton3D(skel,spare)
 % SKELETON3D Calculate the 3D skeleton of an arbitrary binary volume using parallel medial axis thinning.
 %
@@ -18,27 +17,21 @@ function skel = Skeleton3D(skel,spare)
 %
 % For more information, see <a
 % href="matlab:web('http://www.mathworks.com/matlabcentral/fileexchange/43400-skeleton3d')">Skeleton3D</a> at the MATLAB File Exchange.
-
 % pad volume with zeros to avoid edge effects
 skel=padarray(skel,[1 1 1]);
-
 if(nargin==2)
     spare=padarray(spare,[1 1 1]);
 end
-
 % fill lookup table
 eulerLUT = FillEulerLUT;
-
 width = size(skel,1);
 height = size(skel,2);
 depth = size(skel,3);
-
 unchangedBorders = 0;
-
 while( unchangedBorders < 6 )  % loop until no change for all six border types
     unchangedBorders = 0;
     for currentBorder=1:6 % loop over all 6 directions
-        cands=false(width,height,depth, 'like', skel);
+        cands=zeros(width,height,depth);
         switch currentBorder
             case 4
                 x=2:size(skel,1); % identify border voxels as candidates
@@ -133,7 +126,6 @@ while( unchangedBorders < 6 )  % loop until no change for all six border types
                         nh = pk_get_nh(skel,li);
                         di_rc_euler = ~p_EulerInv(nh, eulerLUT);
                         di_rc = ~p_is_simple(nh);                  
-
                          % Check for the simple plint criteria
                         no_single_change = true ;
                         if any(di_rc) % if topology changed: revert
@@ -161,7 +153,6 @@ while( unchangedBorders < 6 )  % loop until no change for all six border types
         
     end
 end
-
 % get rid of padded zeros
 skel = skel(2:end-1,2:end-1,2:end-1);
 end
