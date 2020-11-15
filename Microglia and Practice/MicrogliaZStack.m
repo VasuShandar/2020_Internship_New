@@ -28,37 +28,31 @@ numObj = numel(ConnectedComponents.PixelIdxList); %PixelIdxList is field with li
     ObjectList = sortrows(ObjectList,-1);%Sort columns by pixel size.
     
 %% Code from 3DMorph to display 3D individual objects
-individual=bwconncomp(BW2,26);
-<<<<<<< HEAD
 s = size(im);
 ex=zeros(s(1),s(2),s(3));
 numObj=ConnectedComponents.NumObjects;
-
-progbar = waitbar(0,'Processing your data...');
 figure('Color','k','Position',[1 1 1024 1024]);
 cmap=lines(numObj);
 set(gca,'Color',[0 0 0],'DataAspectRatio',[1 1 1]);
 
-for m = 1:numObj
+for m = 12:12
     %Microglia{1,m}=ConnectedComponents.PixelIdxList{1,i}; %Write the object to new cell array, Microglia in location 'col'.
-    waitbar (m/numObj, progbar);
     ex=zeros(s(1),s(2),s(3));
     ex(ConnectedComponents.PixelIdxList{1,m})=1;%write in only one object to image. Cells are white on black background
-    ds = size(ex);
+    skeleton = Skeleton3D(ex);
+    ds = size(skeleton);
     camlight %To add lighting/shading
     lighting gouraud; %Set style of lighting. This allows contours, instead of flat lighting
     view(0,270); % Lookf at image from top viewpoint instead of side  
     daspect([1 1 1]); 
-    fv=isosurface(ex,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
+    fv=isosurface(skeleton,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
     patch(fv,'FaceColor',cmap(m,:),'FaceAlpha',1,'EdgeColor','none');%without edgecolour, will auto fill black, and all objects appear black
     axis([0 ds(1) 0 ds(2) 0 ds(3)]);%specify the size of the image
-    flatex = sum(ex,3);
+    flatex = sum(skeleton,3);
     allObjs(:,:,m) = flatex(:,:); 
 end
 
-if isgraphics(progbar)
-close(progbar);
-end
+
 
 %%
 
