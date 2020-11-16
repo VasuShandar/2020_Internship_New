@@ -17,19 +17,9 @@ numbranchpts = zeros(numel(FullMg),1);
 MaxBranchLength = zeros(numel(FullMg),1);
 MinBranchLength = zeros(numel(FullMg),1);
 AvgBranchLength = zeros(numel(FullMg),1);
-SkelMethod = 1;
-callgui = SkeletonImageGUI;
-uiwait(callgui);
 cent = (zeros(numObj,3));
 
-if SkelImg||EndImg||BranchImg||OrigCellImg||BranchLengthFile ==1
-    folder = mkdir ([file, '_figures']); 
-    fpath =([file, '_figures']);
-end 
-
-if BranchLengthFile == 1;
 BranchLengthList=cell(1,numel(FullMg));
-end
 
 parfor i=1:numel(FullMg)
     try
@@ -51,35 +41,7 @@ parfor i=1:numel(FullMg)
         saveas(gcf, fullfile(fpath, filename), 'jpg');
     end
     
-    if SkelMethod == 1
-        WholeSkel = SlimSkel3D(ex,100);
-        DownSampled = 0;
-        adjust_scale = scale;
-    end
-    
-    if SkelMethod == 2
-        if s(1)>512 %convert large cells to 512x512 to speed up skeletonization. The branch lengths are later adjusted to account for this down-sampling.
-            ex = imresize(ex,0.5);
-            adjust_scale = 2*scale;
-            DownSampled = 1;
-        else 
-            DownSampled = 0;
-            adjust_scale = scale;
-        end
 
-        SmoothEx = imgaussfilt3(ex); %Smooth the cell so skeleton doesn't pick up many fine hairs
-
-        FastMarchSkel = skeleton(SmoothEx);%Find the skeleton! This uses msfm3d and rk4 files, which have been compiled and the .mexw64 versions included. If errors, re-run compilation of these files (in FastMarching_version3b folder), and add the folder and subfolders to path. 
-
-        %Convert cell output of branches into one image for further processing.
-          WholeSkel=zeros(size(ex));
-          WholeList = round(vertcat(FastMarchSkel{:}));
-          SkelIdx = sub2ind(size(ex),WholeList(:,1),WholeList(:,2),WholeList(:,3));
-          WholeSkel(SkelIdx)=1;
-    end
-    
-      [BoundedSkel, right, left, top, bottom]  = BoundingBoxOfCell(WholeSkel); %Create a bounding box around the skeleton and only analyze this area to significantly increase processing speed. 
-      si = size(BoundedSkel);
 
 % Find endpoints, and trace branches from endpoints to centroid    
     i2 = floor(cent(i,:)); %From the calculated centroid, find the nearest positive pixel on the skeleton, so we know we're starting from a pixel with value 1.
@@ -121,9 +83,8 @@ parfor i=1:numel(FullMg)
     AvgBranchLength(i,1) = mean(ArclenOfEachBranch);  
     
     %Save branch lengths list
-    if BranchLengthFile == 1
-       BranchLengthList{1,i} = ArclenOfEachBranch;
-    end   
+    BranchLengthList{1,i} = ArclenOfEachBranch;
+       
     
     fullmask = sum(masklist,4);%Add all masks to eachother, so have one image of all branches.
     fullmask(fullmask(:,:,:)>3)=4;%So next for loop can work, replace all values higher than 3 with 4. Would need to change if want more than quaternary connectivity.
@@ -134,7 +95,6 @@ parfor i=1:numel(FullMg)
     tert = (fullmask(:,:,:))==2;
     quat = (fullmask(:,:,:))==1;
     
-    if SkelImg == 1
     title = [file,'_Cell',num2str(i)];
     figure('Name',title); %Plot all branches as primary (red), secondary (yellow), tertiary (green), or quaternary (blue). 
     hold on
@@ -159,7 +119,7 @@ parfor i=1:numel(FullMg)
     hold off
     filename = ([file '_Skeleton_cell' num2str(i)]);
     saveas(gcf, fullfile(fpath, filename), 'jpg');
-    end
+    
     
     % Find branchpoints
     brpts =zeros(si(1),si(2),si(3),4);
@@ -185,7 +145,6 @@ parfor i=1:numel(FullMg)
     BranchptList = [r c p];
     numbranchpts(i,:) = length(BranchptList);
     
-    if EndImg == 1
         title = [file,'_Cell',num2str(i)];
         figure('Name',title); %Plot all branches with endpoints
         fv1=isosurface(fullmask,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
@@ -201,9 +160,7 @@ parfor i=1:numel(FullMg)
         daspect([1 1 1]);
         filename = ([file '_Endpoints_cell' num2str(i)]);
         saveas(gcf, fullfile(fpath, filename), 'jpg');
-    end
     
-    if BranchImg == 1
         title = [file,'_Cell',num2str(i)];
         figure('Name',title); %Plot all branches with branchpoints
         fv1=isosurface(fullmask,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
@@ -219,7 +176,7 @@ parfor i=1:numel(FullMg)
         daspect([1 1 1]);
         filename = ([file '_Branchpoints_cell' num2str(i)]);
         saveas(gcf, fullfile(fpath, filename), 'jpg');
-    end
+    
         
    catch
        %do nothing if an error is detected, just write in zeros and
@@ -230,7 +187,6 @@ parfor i=1:numel(FullMg)
 end
 
 %Save Branch Lengths File
- if BranchLengthFile == 1
      names = ["cell1"];
      %Write in headings
     for CellNum = 1:numel(FullMg)
@@ -245,7 +201,7 @@ end
             xlswrite(fullfile(fpath, BranchFilename),BranchLengthList{1,ColNum}',1,['B' num2str(ColNum)]);
         end
     end
- end
+ 
  
 %% Output results
 %Creates new excel sheet with file name and saves to current folder.
@@ -289,7 +245,8 @@ end
 %% Parameters file
 %Save .mat parameters file for batch processing. Name is "Parameters_file
 %name_date(year month day hour)"
-time = clock;
-name = ['Parameters_',file,'_',num2str(time(1)),num2str(time(2)),num2str(time(3)),num2str(time(4))];
-save(name,'ch','ChannelOfInterest','scale','zscale','adjust','noise','s','ShowImg','ShowObjImg','ShowCells','ShowFullCells','CellSizeCutoff','SmCellCutoff','KeepAllCells','RemoveXY','ConvexCellsImage','SkelMethod','SkelImg','OrigCellImg','EndImg','BranchImg','BranchLengthFile');
-delete(gcp); %close parallel pool so error isn't generated when program is run again.
+% time = clock;
+% name = ['Parameters_',file,'_',num2str(time(1)),num2str(time(2)),num2str(time(3)),num2str(time(4))];
+% save(name,'ch','ChannelOfInterest','scale','zscale','adjust','noise','s','ShowImg','ShowObjImg','ShowCells','ShowFullCells','CellSizeCutoff','SmCellCutoff','KeepAllCells','RemoveXY','ConvexCellsImage','SkelMethod','SkelImg','OrigCellImg','EndImg','BranchImg','BranchLengthFile');
+% delete(gcp); %close parallel pool so error isn't generated when program is run again.
+

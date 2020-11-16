@@ -36,7 +36,6 @@ cmap=lines(numObj);
 set(gca,'Color',[0 0 0],'DataAspectRatio',[1 1 1]);
 
 for m = 12:12
-    %Microglia{1,m}=ConnectedComponents.PixelIdxList{1,i}; %Write the object to new cell array, Microglia in location 'col'.
     ex=zeros(s(1),s(2),s(3));
     ex(ConnectedComponents.PixelIdxList{1,m})=1;%write in only one object to image. Cells are white on black background
     skeleton = Skeleton3D(ex);
@@ -51,8 +50,98 @@ for m = 12:12
     flatex = sum(skeleton,3);
     allObjs(:,:,m) = flatex(:,:); 
 end
+SkeletonStats(numObj, flatex);
 
+%%
+% Skeletonizing Code
+% Find endpoints, and trace branches from endpoints to centroid   
+DownSampled = 0;
+    ex=zeros(s(1),s(2),s(3));
+    ex(ConnectedComponents.PixelIdxList{1,m})=1;%write in only one object to image. Cells are white on black background
+    skeleton = Skeleton3D(ex);
+    FullMg = skeleton;
+% cleaned up branch point and coloring code from 3DMorph 
+numendpts = zeros(numel(FullMg),1);
+numbranchpts = zeros(numel(FullMg),1);
+MaxBranchLength = zeros(numel(FullMg),1);
+MinBranchLength = zeros(numel(FullMg),1);
+AvgBranchLength = zeros(numel(FullMg),1);
+cent = (zeros(numObj,3));
 
+BranchLengthList=cell(1,numel(FullMg));
+
+    i2 = floor(cent(i,:)); %From the calculated centroid, find the nearest positive pixel on the skeleton, so we know we're starting from a pixel with value 1.
+    if DownSampled == 1
+       i2(1) = round(i2(1)/2);
+       i2(2) = round(i2(2)/2);
+    end
+    closestPt = NearestPixel(WholeSkel,i2,scale);
+    i2 = closestPt; %Coordinates of centroid (endpoint of line).
+    i2(:,1)=(i2(:,1))-left+1;
+    i2(:,2) = (i2(:,2))-bottom+1;
+
+    endpts = (convn(BoundedSkel,kernel,'same')==1)& BoundedSkel; %convolution, overlaying the kernel cube to see the sum of connected pixels.      
+    EndptList = find(endpts==1);
+    [r,c,p]=ind2sub(si,EndptList);%Output of ind2sub is row column plane
+    EndptList = [r c p];
+    numendpts(i,:) = length(EndptList);
+
+    masklist =zeros(si(1),si(2),si(3),length(EndptList));
+    ArclenOfEachBranch = zeros(length(EndptList),1);
+    for j=1:length(EndptList)%Loop through coordinates of endpoint.
+        i1 = EndptList(j,:); 
+        mask = ConnectPointsAlongPath(BoundedSkel,i1,i2);
+        masklist(:,:,:,j)=mask;
+        % Find the mask length in microns
+        pxlist = find(masklist(:,:,:,j)==1);%Find pixels that are 1s (branch)
+        distpoint = reorderpixellist(pxlist,si,i1,i2); %Reorder pixel lists so they're ordered by connectivity
+        %Convert the pixel coordinates by the scale to calculate arc length in microns.
+        distpoint(:,1) = distpoint(:,1)*adjust_scale; %If 1024 and downsampled, these scales have been adjusted
+        distpoint(:,2) = distpoint(:,2)*adjust_scale; %If 1024 and downsampled, these scales have been adjusted
+        distpoint(:,3) = distpoint(:,3)*zscale;
+        [arclen,seglen] = arclength(distpoint(:,1),distpoint(:,2),distpoint(:,3));%Use arc length function to calculate length of branch from coordinates
+        ArclenOfEachBranch(j,1)=arclen; %Write the length in microns to a matrix where each row is the length of each branch, and each column is a different cell.
+    end
+  
+    %Find average min, max, and avg branch lengths
+    MaxBranchLength(i,1) = max(ArclenOfEachBranch);
+    MinBranchLength(i,1) = min(ArclenOfEachBranch);
+    AvgBranchLength(i,1) = mean(ArclenOfEachBranch);  
+    
+    %Save branch lengths list
+    BranchLengthList{1,i} = ArclenOfEachBranch;
+       
+    
+    fullmask = sum(masklist,4);%Add all masks to eachother, so have one image of all branches.
+    fullmask(fullmask(:,:,:)>3)=4;%So next for loop can work, replace all values higher than 3 with 4. Would need to change if want more than quaternary connectivity.
+
+    % Define branch level and display all on one colour-coded image.
+    pri = (fullmask(:,:,:))==4;
+    sec = (fullmask(:,:,:))==3;
+    tert = (fullmask(:,:,:))==2;
+    quat = (fullmask(:,:,:))==1;
+    
+    title = [file,'_Cell',num2str(i)];
+    figure('Name',title); %Plot all branches as primary (red), secondary (yellow), tertiary (green), or quaternary (blue). 
+    hold on
+    fv1=isosurface(pri,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
+    patch(fv1,'FaceColor',[1 0 0],'FaceAlpha',0.5,'EdgeColor','none');%without edgecolour, will auto fill black, and all objects appear black
+    camlight %To add lighting/shading
+    lighting gouraud; %Set style of lighting. This allows contours, instead of flat lighting
+    fv1=isosurface(sec,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
+    patch(fv1,'FaceColor',[1 1 0],'FaceAlpha',0.5,'EdgeColor','none');%without edgecolour, will auto fill black, and all objects appear black
+    camlight %To add lighting/shading
+    lighting gouraud; %Set style of lighting. This allows contours, instead of flat lighting
+    fv1=isosurface(tert,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
+    patch(fv1,'FaceColor',[0 1 0],'FaceAlpha',0.5,'EdgeColor','none');%without edgecolour, will auto fill black, and all objects appear black
+    camlight %To add lighting/shading
+    lighting gouraud; %Set style of lighting. This allows contours, instead of flat lighting
+    fv1=isosurface(quat,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
+    patch(fv1,'FaceColor',[0 0 1],'FaceAlpha',0.5,'EdgeColor','none');%without edgecolour, will auto fill black, and all objects appear black
+    camlight %To add lighting/shading
+    lighting gouraud; %Set style of lighting. This allows contours, instead of flat lighting
+    view(0,270); % Look at image from top viewpoint instead of side
+    daspect([1 1 1]);
 
 %%
 
