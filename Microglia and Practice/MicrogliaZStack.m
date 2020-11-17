@@ -39,6 +39,8 @@ for m = 1:numObj;
     ex=zeros(s(1),s(2),s(3));
     ex(ConnectedComponents.PixelIdxList{1,m})=1;%write in only one object to image. Cells are white on black background
     ds = size(ex);
+    se = strel('disk',3);
+    ex = imclose(ex,se);
     ex = Skeleton3D(ex);
     camlight %To add lighting/shading
     lighting gouraud; %Set style of lighting. This allows contours, instead of flat lighting
@@ -46,6 +48,9 @@ for m = 1:numObj;
     daspect([1 1 1]); 
     fv=isosurface(ex,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
     patch(fv,'FaceColor',cmap(m,:),'FaceAlpha',1,'EdgeColor','none');%without edgecolour, will auto fill black, and all objects appear black
+    branchpts = branchpoints3(ex);
+    fv=isosurface(branchpts,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
+    patch(fv,'FaceColor',[1 1 1],'FaceAlpha',1,'EdgeColor','none');
     axis([0 ds(1) 0 ds(2) 0 ds(3)]);%specify the size of the image
     flatex = sum(ex,3);
     allObjs(:,:,m) = flatex(:,:); 
@@ -55,11 +60,26 @@ end
 %%
 % Skeletonizing Code
 % Find endpoints, and trace branches from endpoints to centroid   
+
+se = strel('disk',3);
+closeBW = imclose(ex,se);
+figure, imshow(max(closeBW, [],3))
+
+
+
+
+fv=isosurface(branchpts,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
+    patch(fv,'FaceColor',[0 0 0],'FaceAlpha',1,'EdgeColor','none');
+
+
+
 DownSampled = 0;
     ex=zeros(s(1),s(2),s(3));
     ex(ConnectedComponents.PixelIdxList{1,m})=1;%write in only one object to image. Cells are white on black background
     skeleton = Skeleton3D(ex);
     FullMg = skeleton;
+    FullMg = ex;
+
 % cleaned up branch point and coloring code from 3DMorph 
 numendpts = zeros(numel(FullMg),1);
 numbranchpts = zeros(numel(FullMg),1);
@@ -74,8 +94,8 @@ BranchLengthList=cell(1,numel(FullMg));
 
     i2 = floor(cent(i,:)); %From the calculated centroid, find the nearest positive pixel on the skeleton, so we know we're starting from a pixel with value 1.
     closestPt = NearestPixel(ex,i2,scale);
-    [BoundedSkel, right, left, top, bottom]  = BoundingBoxOfCell(WholeSkel); %Create a bounding box around the skeleton and only analyze this area to significantly increase processing speed. 
-      si = size(BoundedSkel);
+    [BoundedSkel, right, left, top, bottom]  = BoundingBoxOfCell(ex); %Create a bounding box around the skeleton and only analyze this area to significantly increase processing speed. 
+    si = size(BoundedSkel);
     i2 = closestPt; %Coordinates of centroid (endpoint of line).
     i2(:,1)=(i2(:,1))-left+1;
     i2(:,2) = (i2(:,2))-bottom+1;
