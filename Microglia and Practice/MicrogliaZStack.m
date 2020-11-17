@@ -69,13 +69,13 @@ AvgBranchLength = zeros(numel(FullMg),1);
 cent = (zeros(numObj,3));
 
 BranchLengthList=cell(1,numel(FullMg));
+    scale = 0.46125;   
+    adjust_scale = scale;
 
     i2 = floor(cent(i,:)); %From the calculated centroid, find the nearest positive pixel on the skeleton, so we know we're starting from a pixel with value 1.
-    if DownSampled == 1
-       i2(1) = round(i2(1)/2);
-       i2(2) = round(i2(2)/2);
-    end
-    closestPt = NearestPixel(WholeSkel,i2,scale);
+    closestPt = NearestPixel(ex,i2,scale);
+    [BoundedSkel, right, left, top, bottom]  = BoundingBoxOfCell(WholeSkel); %Create a bounding box around the skeleton and only analyze this area to significantly increase processing speed. 
+      si = size(BoundedSkel);
     i2 = closestPt; %Coordinates of centroid (endpoint of line).
     i2(:,1)=(i2(:,1))-left+1;
     i2(:,2) = (i2(:,2))-bottom+1;

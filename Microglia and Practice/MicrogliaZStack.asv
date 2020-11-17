@@ -34,10 +34,12 @@ numObj=ConnectedComponents.NumObjects;
 figure('Color','k','Position',[1 1 1024 1024]);
 cmap=lines(numObj);
 set(gca,'Color',[0 0 0],'DataAspectRatio',[1 1 1]);
+
 for m = 1:numObj;
     ex=zeros(s(1),s(2),s(3));
     ex(ConnectedComponents.PixelIdxList{1,m})=1;%write in only one object to image. Cells are white on black background
     ds = size(ex);
+    ex = Skeleton3D(ex);
     camlight %To add lighting/shading
     lighting gouraud; %Set style of lighting. This allows contours, instead of flat lighting
     view(0,270); % Lookf at image from top viewpoint instead of side  
@@ -48,26 +50,6 @@ for m = 1:numObj;
     flatex = sum(ex,3);
     allObjs(:,:,m) = flatex(:,:); 
     disp(m);
-end
-for m = 1:numObj
-    %Microglia{1,m}=ConnectedComponents.PixelIdxList{1,i}; %Write the object to new cell array, Microglia in location 'col'.
-    ex=zeros(s(1),s(2),s(3));
-    ex(ConnectedComponents.PixelIdxList{1,m})=1;%write in only one object to image. Cells are white on black background
-    ds = size(ex);
-    skeleton = Skeleton3D(ex);
-    ds = size(skeleton);
-    disp(m);   
-    camlight %To add lighting/shading
-    lighting gouraud; %Set style of lighting. This allows contours, instead of flat lighting
-    view(0,270); % Lookf at image from top viewpoint instead of side  
-    daspect([1 1 1]); 
-    fv=isosurface(ex,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
-    fv=isosurface(skeleton,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
-    patch(fv,'FaceColor',cmap(m,:),'FaceAlpha',1,'EdgeColor','none');%without edgecolour, will auto fill black, and all objects appear black
-    axis([0 ds(1) 0 ds(2) 0 ds(3)]);%specify the size of the image
-    flatex = sum(ex,3);
-    flatex = sum(skeleton,3);
-    allObjs(:,:,m) = flatex(:,:); 
 end
 
 %%
@@ -87,18 +69,16 @@ AvgBranchLength = zeros(numel(FullMg),1);
 cent = (zeros(numObj,3));
 
 BranchLengthList=cell(1,numel(FullMg));
+    scale = 0.46125;   
+    adjust_scale = scale;
 
     i2 = floor(cent(i,:)); %From the calculated centroid, find the nearest positive pixel on the skeleton, so we know we're starting from a pixel with value 1.
-    if DownSampled == 1
-       i2(1) = round(i2(1)/2);
-       i2(2) = round(i2(2)/2);
-    end
-    closestPt = NearestPixel(WholeSkel,i2,scale);
+    closestPt = 3DMorphGit/NearestPixel(ex,i2,scale);
     i2 = closestPt; %Coordinates of centroid (endpoint of line).
     i2(:,1)=(i2(:,1))-left+1;
     i2(:,2) = (i2(:,2))-bottom+1;
 
-    endpts = (convn(BoundedSkel,kernel,'same')==1)& BoundedSkel; %convolution, overlaying the kernel cube to see the sum of connected pixels.      
+    endpts = (convn(ex,kernel,'same')==1)& ex; %convolution, overlaying the kernel cube to see the sum of connected pixels.      
     EndptList = find(endpts==1);
     [r,c,p]=ind2sub(si,EndptList);%Output of ind2sub is row column plane
     EndptList = [r c p];
@@ -108,7 +88,7 @@ BranchLengthList=cell(1,numel(FullMg));
     ArclenOfEachBranch = zeros(length(EndptList),1);
     for j=1:length(EndptList)%Loop through coordinates of endpoint.
         i1 = EndptList(j,:); 
-        mask = ConnectPointsAlongPath(BoundedSkel,i1,i2);
+        mask = ConnectPointsAlongPath(ex,i1,i2);
         masklist(:,:,:,j)=mask;
         % Find the mask length in microns
         pxlist = find(masklist(:,:,:,j)==1);%Find pixels that are 1s (branch)
