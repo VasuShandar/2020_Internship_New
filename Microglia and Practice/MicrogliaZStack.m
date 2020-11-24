@@ -37,12 +37,12 @@ for m = 1:numObj
     se = strel('disk',3);
     ex = imclose(ex,se);
     ex = Skeleton3D(ex);
-    % camlight %To add lighting/shading
-    % lighting gouraud; %Set style of lighting. This allows contours, instead of flat lighting
-    % view(0,270); % Lookf at image from top viewpoint instead of side  
-    % daspect([1 1 1]); 
-    % fv=isosurface(ex,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
-    % patch(fv,'FaceColor',cmap(m,:),'FaceAlpha',1,'EdgeColor','none');%without edgecolour, will auto fill black, and all objects appear black
+    camlight %To add lighting/shading
+    lighting gouraud; %Set style of lighting. This allows contours, instead of flat lighting
+    view(0,270); % Lookf at image from top viewpoint instead of side  
+    daspect([1 1 1]); 
+    fv=isosurface(ex,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
+    patch(fv,'FaceColor',cmap(m,:),'FaceAlpha',1,'EdgeColor','none');%without edgecolour, will auto fill black, and all objects appear black
     branchpts = branchpoints3(ex);
     BWBRANCH = imbinarize(branchpts);
     BranchConnectedComponents=bwconncomp(BWBRANCH,26);
@@ -53,11 +53,11 @@ for m = 1:numObj
     EndConnectedComponents=bwconncomp(BWEND,26);
     BranchnumObj = numel(EndConnectedComponents.PixelIdxList);
     AllEndpoints(m, 1) = BranchnumObj; 
-    % fv=isosurface(branchpts,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
-    % patch(fv,'FaceColor',[0 1 1],'FaceAlpha',1,'EdgeColor','none');
-    % fv=isosurface(endpts,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
-    % patch(fv,'FaceColor',[1 1 0],'FaceAlpha',1,'EdgeColor','none');
-    % axis([0 ds(1) 0 ds(2) 0 ds(3)]);%specify the size of the image
+    fv=isosurface(branchpts,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
+    patch(fv,'FaceColor',[0 1 1],'FaceAlpha',1,'EdgeColor','none');
+    fv=isosurface(endpts,0);%display each object as a surface in 3D. Will automatically add the next object to existing image.
+    patch(fv,'FaceColor',[1 1 0],'FaceAlpha',1,'EdgeColor','none');
+    axis([0 ds(1) 0 ds(2) 0 ds(3)]);%specify the size of the image
     flatex = sum(ex,3);
     allObjs(:,:,m) = flatex(:,:); 
     disp(m);
