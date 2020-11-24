@@ -65,6 +65,6 @@ end
 for i=1:numObj;
     Object(i,1) = i;
 end
-a = table (Object, AllEndpoints, AllBranches);
+FinalMicrogliaData = table (Object, AllEndpoints, AllBranches);
 
 %%
