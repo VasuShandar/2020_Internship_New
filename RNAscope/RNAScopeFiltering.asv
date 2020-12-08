@@ -1,7 +1,5 @@
 %% RNA Scope Image analysis for Low Abundance Genes
 function RNAScopeFiltering = RNAScopeFiltering(fname)
-clear all
-close all
 
 %% Read Image
 im = (imread(fname));
@@ -16,11 +14,11 @@ imgblue = im(:,:,3); % blue, nuclei only signal
 f = imshow(imgblue);
 
 % Subtract the uneven background from the image
-se = strel('disk',60);
+se = strel('disk',20);
 imgblue = imtophat(imgblue,se);
 f = imshow(imgblue);
-centers = imfindcircles(imgblue,[10 40]);
-
+centers = imfindcircles(imgblue,[5 150]);
+imshow(centers);
 % Binarize Image
 bw_blue = imbinarize(imgblue);
 f = imshow(bw_blue);
@@ -55,7 +53,7 @@ cell_radious(1:length(centers),1)=20;
 f = imshow(imgblue)
 hold on
 viscircles(centroids,cell_radious,'LineStyle','-','LineWidth',.1,'Color','cyan');
-viscircles(centers,cell_radious,'LineStyle','-','LineWidth',.1,'Color','cyan');
+% viscircles(centers,cell_radious,'LineStyle','-','LineWidth',.1,'Color','cyan');
 
 %% Extract Red Channel for Signal Segmentation
 imgred = im(:,:,1);
@@ -129,5 +127,6 @@ greenperOtherCell(i,1)=mean(green_Size(red_size<RedCellThresh));
 redCellCounts(i,1)=(MergeCells+redCells);
 greenCellCounts(i,1)=greenCells;
 
-RNAScopeFiltering = (Green
+
+
 end 
