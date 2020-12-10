@@ -5,7 +5,7 @@ function RNAScopeFiltering = RNAScopeFiltering(fname)
 im = (imread(fname));
 
 %% Original Unedited Figure
-figure('Color','k')
+% figure('Color','k')
 % f = imshow(im);
 
 %% Extract Blue Channel for Dapi Segmentation
@@ -17,7 +17,7 @@ se = strel('disk',20);
 imgblue = imtophat(imgblue,se);
 % f = imshow(imgblue);
 % centers = imfindcircles(imgblue,[5 100]);
-%imshow(centers);
+% imshow(centers);
 % Binarize Image
 bw_blue = imbinarize(imgblue);
 % f = imshow(bw_blue);
