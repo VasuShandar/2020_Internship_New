@@ -1,21 +1,63 @@
 %% RNA Scope Image analysis for Low Abundance Genes
-function RNAScopeFiltering = RNAScopeFiltering(fname)
+function RNAScopeFiltering = RNAScopeFiltering(fname, Options)
+if nargin<2;     
+    Options=struct([]); 
+end
 
-%% Read Image
+if isfield(Options, 'DiskSize')
+       Options.DiskSize = Options.DiskSize;
+else 
+    Options.DiskSize = 40;
+end 
+if isfield(Options, 'ShowInitialFigure')
+        Options.ShowInitialFigure = Options.ShowInitialFigure;
+else 
+    Options.ShowInitialFigure = true;
+
+end 
+if isfield(Options, 'ShowFinalFigure')
+    Options.ShowFinalFigure = Options.ShowFinalFigure;
+else 
+    Options.ShowFinalFigure = true;
+end   
+if isfield(Options, 'Radius')
+    Options.Radius = Options.Radius;
+else 
+    Options.Radius = 20;
+end
+if isfield(Options, 'RedCellThreshold')
+    Options.RedCellThreshold = Options.RedCellThreshold;
+else 
+    Options.RedCellThreshold = 40000;
+end 
+if isfield(Options, 'GreenCellThreshold')
+    Options.GreenCellThreshold = Options.GreenCellThreshold;
+else 
+    Options.GreenCellThreshold = 40000;
+end 
+    
 im = (imread(fname));
-
+[~,imName] = fileparts(fname);
 %% Original Unedited Figure
-% figure('Color','k')
-% f = imshow(im);
+if Options.ShowInitialFigure == 1
+    figure('Color','k')
+    f = imshow(im);
+end 
 
 %% Extract Blue Channel for Dapi Segmentation
 imgblue = im(:,:,3); % blue, nuclei only signal
 % f = imshow(imgblue);
 
 % Subtract the uneven background from the image
-se = strel('disk',20);
+
+se = strel('disk',Options.DiskSize);
 imgblue = imtophat(imgblue,se);
-% f = imshow(imgblue);
+%figure;
+%f = imshow(imgblue);
+%J = imadjust(imgblue,stretchlim(imgblue),[0 1]);
+%figure;
+%imshow(J);
+
 % centers = imfindcircles(imgblue,[5 100]);
 % imshow(centers);
 % Binarize Image
@@ -27,14 +69,14 @@ bw_blue = bwareaopen(bw_blue, 50);
 % f = imshow(bw_blue);
 
 % % Remove Clumping
-bw_blue = bwareafilt(bw_blue,[50 1500]);
-% f = imshow(bw_blue);
+bw_blue = bwareafilt(bw_blue,[150 1500]);
+f = imshow(bw_blue);
 
 % Look for connected components
 cc_blue = bwconncomp(bw_blue, 8);
 
 % Create Dapi Centroids
-radius = 20;
+radius = Options.Radius;
 s = regionprops(cc_blue,'centroid');
 centroids = cat(1, s.Centroid);
 
@@ -106,15 +148,18 @@ end
 % figure;
 % histfit(green_Size);
 
-RedCellThresh = 40000;
-GreenCellThresh = 20000;
+RedCellThresh = Options.RedCellThreshold;
+GreenCellThresh = Options.GreenCellThreshold;
 
 % Insert Circles
  I=insertShape(im,'circle',[centroids(red_size>RedCellThresh,:) cell_radious(red_size>RedCellThresh)],'Color','red','LineWidth',2);
  I=insertShape(I,'circle',[centroids(green_Size>GreenCellThresh,:) cell_radious(green_Size>GreenCellThresh)],'Color','green','LineWidth',2);
  I=insertShape(I,'circle',[centroids(red_size>RedCellThresh & green_Size>GreenCellThresh,:) cell_radious(red_size>RedCellThresh & green_Size>GreenCellThresh)],'Color','yellow','LineWidth',2);
- figure;
- f=imshow(I);
+ 
+ if Options.ShowFinalFigure == 1
+    figure;
+    f=imshow(I);
+end 
 
 % Final Numbers
 MergeCells=sum(red_size>RedCellThresh & green_Size>GreenCellThresh);
