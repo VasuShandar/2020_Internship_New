@@ -119,9 +119,49 @@ cell_radious(1:length(centroids),1)=20;
 
 %% Extract Red Channel for Signal Segmentation
 imgred = im(:,:,1);
+L_red = bwlabel(imgred);
+s_red = regionprops(L_red,'PixelIdxList');
+% Initialize vector containing max values.
+max_value_red = zeros(numel(s_red), 1);
+% Loop over each labeled object, grabbing the gray scale pixel values using
+% PixelIdxList and computing their maximum.
+for k = 1:numel(s_red)
+    max_value_red(k) = max(imgred(s_red(k).PixelIdxList));
+end
 
+% Show all the maximum values as a bar chart.
+bar(max_value_red);
+bright_objects_red = find(max_value_red > 0);
+figure;
+imshow(ismember(L_red, bright_objects_red));
+
+%redBrightnessFilter = imgred <= 0;
+%figure;
+%imshow(redBrightnessFilter);
 %% Extract Green Channel for Signal Segmentation
 imggreen = im(:,:,2);
+figure;
+imshow(imggreen);
+L_green = bwlabel(imggreen);
+s_green = regionprops(L_green,'PixelIdxList');
+% Initialize vector containing max values.
+max_value_green = zeros(numel(s_green), 1);
+% Loop over each labeled object, grabbing the gray scale pixel values using
+% PixelIdxList and computing their maximum.
+for k = 1:numel(s_green)
+    max_value_red(k) = max(imggreen(s_green(k).PixelIdxList));
+end
+
+% Show all the maximum values as a bar chart.
+bar(max_value_green);
+bright_objects_green = find(max_value_green > 0);
+figure;
+imshow(ismember(L_green, bright_objects_green));
+
+
+%greenBrightnessFilter = imggreen <= 0;
+%figure;
+%imshow(greenBrightnessFilter);
 
 %% Extract Far Red Channel for Signal Segmentation
 % imgFarRed = imread("Z:\Neumaier Lab\Jordan\MAX_Stack RD.tif");
@@ -156,10 +196,10 @@ for j=1:length(centroids)
 cellIndex = sub2ind(size(imgblue),round(centroids(j,2)) + I,round(centroids(j,1)) + J);
 
 % Total RNA Scope Signal/ Cell
-red(j,:) = imgred(cellIndex);
-green(j,:)= imggreen(cellIndex);
-red_size(j) = sum(imgred(cellIndex));
-green_Size(j)=sum(imggreen(cellIndex));
+red(j,:) = bright_objects_red(cellIndex);
+green(j,:)= brightobjects_green(cellIndex);
+red_size(j) = sum(bright_objects_red(cellIndex));
+green_Size(j)=sum(bright_objects_red(cellIndex));
 end
 
 % Threshold Cells

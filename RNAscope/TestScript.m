@@ -5,10 +5,12 @@ Options.ShowFinalFigure = true;
 Options.Radius = 20;
 Options.RedCellThreshold = 30000;
 Options.GreenCellThreshold = 20000;
-Options.ObjectNumber = 500;
+Options.ObjectNumber = 1000;
     
 
 A1 = RNAScopeFiltering("12.1/PDE10a_A1/XY01/A1_XY01_Overlay.tif", Options);
+%bright = imregionalmax(A1{1, 5}, 8);
+%imshow(bright);
 A2 = RNAScopeFiltering("12.1/PDE10a_A1/XY01/A1_XY02_Overlay.tif", Options);
 A3 = RNAScopeFiltering("12.1/PDE10a_A1/XY03/A1_XY03_Overlay.tif", Options);
 A4 = RNAScopeFiltering("12.1/PDE10a_A1/XY04/A1_XY04_Overlay.tif");

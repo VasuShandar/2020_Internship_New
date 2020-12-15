@@ -49,8 +49,17 @@ if Options.ShowInitialFigure == 1
     f = imshow(im);
 end 
 
+
+
+%% Thresholding by brightness
+%maxblue = max(max(im(:,:,1)));
+%deep_blue = im(:,:,1) .* (im(:,:,1) >= 0.95 * maxblue);
+%max_blue(1,1,3) = 0;
+
 %% Extract Blue Channel for Dapi Segmentation
 imgblue = im(:,:,3); % blue, nuclei only signal
+
+%show(max_blue);
 % f = imshow(imgblue);
 
 % Subtract the uneven background from the image
@@ -62,8 +71,8 @@ imgblue = imtophat(imgblue,se);
 J = imadjust(imgblue,stretchlim(imgblue),[0 1]);
 %Kaverage = filter2(fspecial('average',3),J)/255;
 %Kmedian = medfilt2(J);
-figure;
-imshowpair(Kaverage,Kmedian,'montage')
+%figure;
+%imshowpair(Kaverage,Kmedian,'montage')
 
 
 % Binarize Image
@@ -110,9 +119,36 @@ cell_radious(1:length(centroids),1)=20;
 
 %% Extract Red Channel for Signal Segmentation
 imgred = im(:,:,1);
+%figure;
+%imshow(imgred);
+redBrightnessFilter = imgred <= 255;
 
+%figure;
+%imshow(redBrightnessFilter);
 %% Extract Green Channel for Signal Segmentation
 imggreen = im(:,:,2);
+imshow 
+L = bwlabel(imggreen);
+s = regionprops(L,'PixelIdxList');
+% Initialize vector containing max values.
+max_value = zeros(numel(s), 1);
+% Loop over each labeled object, grabbing the gray scale pixel values using
+% PixelIdxList and computing their maximum.
+for k = 1:numel(s)
+    max_value(k) = max(bw_blue(s(k).PixelIdxList));
+end
+
+% Show all the maximum values as a bar chart.
+bar(max_value);
+bright_objects = find(max_value > 50);
+figure;
+imshow(ismember(L, bright_objects));
+
+%figure;
+%imshow(imggreen);
+%greenBrightnessFilter = imggreen <= 0;
+%figure;
+%imshow(greenBrightnessFilter);
 
 %% Extract Far Red Channel for Signal Segmentation
 % imgFarRed = imread("Z:\Neumaier Lab\Jordan\MAX_Stack RD.tif");
