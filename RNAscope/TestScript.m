@@ -1,11 +1,11 @@
 % Import Files
 Options.DiskSize = 20;
-Options.ShowInitialFigure = true;
-Options.ShowFinalFigure = false;
+Options.ShowInitialFigure = false;
+Options.ShowFinalFigure = true;
 Options.Radius = 20;
 Options.RedCellThreshold = 30000;
 Options.GreenCellThreshold = 20000;
-
+Options.ObjectNumber = 500;
     
 
 A1 = RNAScopeFiltering("12.1/PDE10a_A1/XY01/A1_XY01_Overlay.tif", Options);

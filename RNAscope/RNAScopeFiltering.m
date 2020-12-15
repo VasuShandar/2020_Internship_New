@@ -35,6 +35,11 @@ if isfield(Options, 'GreenCellThreshold')
 else 
     Options.GreenCellThreshold = 40000;
 end 
+if isfield(Options, 'ObjectNumber')
+       Options.ObjectNumber = Options.ObjectNumber;
+else
+    Options.ObjectNumber = 0;
+end 
     
 im = (imread(fname));
 [~,imName] = fileparts(fname);
@@ -44,8 +49,17 @@ if Options.ShowInitialFigure == 1
     f = imshow(im);
 end 
 
+
+
+%% Thresholding by brightness
+%maxblue = max(max(im(:,:,1)));
+%deep_blue = im(:,:,1) .* (im(:,:,1) >= 0.95 * maxblue);
+%max_blue(1,1,3) = 0;
+
 %% Extract Blue Channel for Dapi Segmentation
 imgblue = im(:,:,3); % blue, nuclei only signal
+
+%show(max_blue);
 % f = imshow(imgblue);
 
 % Subtract the uneven background from the image
@@ -54,12 +68,13 @@ se = strel('disk',Options.DiskSize);
 imgblue = imtophat(imgblue,se);
 %figure;
 %f = imshow(imgblue);
-%J = imadjust(imgblue,stretchlim(imgblue),[0 1]);
+J = imadjust(imgblue,stretchlim(imgblue),[0 1]);
+%Kaverage = filter2(fspecial('average',3),J)/255;
+%Kmedian = medfilt2(J);
 %figure;
-%imshow(J);
+%imshowpair(Kaverage,Kmedian,'montage')
 
-% centers = imfindcircles(imgblue,[5 100]);
-% imshow(centers);
+
 % Binarize Image
 bw_blue = imbinarize(imgblue);
 % f = imshow(bw_blue);
@@ -68,8 +83,14 @@ bw_blue = imbinarize(imgblue);
 bw_blue = bwareaopen(bw_blue, 50);
 % f = imshow(bw_blue);
 
-% % Remove Clumping
+% % Remove Clumping and try reducing fuzzy objects by only selecting
+% largest
+if Options.ObjectNumber > 0
+bw_blue = bwareafilt(bw_blue,Options.ObjectNumber); 
+else 
 bw_blue = bwareafilt(bw_blue,[150 1500]);
+end 
+figure;
 f = imshow(bw_blue);
 
 % Look for connected components
