@@ -5,10 +5,10 @@
 clear all
 close all
 % read in table matching file name and experiment information
-Key=readtable('Key.xlsx');
-Key.Group=categorical(Key.Group);
-Key.ID=categorical(Key.ID);
-Key.Sex=categorical(Key.Sex);
+% Key=readtable('Key.xlsx');
+% Key.Group=categorical(Key.Group);
+% Key.ID=categorical(Key.ID);
+% Key.Sex=categorical(Key.Sex);
 %% PDE10A Colocalization analysis
 % Options
 try
@@ -41,7 +41,7 @@ for i=1:height(d);
     end
 end
 
-PDE10A = join(Key,PDE10A);
+% PDE10A = join(Key,PDE10A);
 
 g=gramm('x',PDE10A.Group,'y',PDE10A.colocPercent*100,'color',PDE10A.Group);
 g.stat_violin('normalization','width','half',0,'dodge',0,'fill','transparent')
@@ -96,7 +96,7 @@ for i=1:height(d);
     end
 end
 
-Arpp21 = join(Key,Arpp21);
+% Arpp21 = join(Key,Arpp21);
 
 g=gramm('x',Arpp21.Group,'y',Arpp21.colocPercent*100,'color',Arpp21.Group);
 g.stat_violin('normalization','width','half',0,'dodge',0,'fill','transparent')
@@ -151,7 +151,7 @@ for i=1:height(d);
     end
 end
 
-DRD1 = join(Key,DRD1);
+% DRD1 = join(Key,DRD1);
 
 g=gramm('x',DRD1.Group,'y',DRD1.colocPercent*100,'color',DRD1.Group);
 g.stat_violin('normalization','width','half',0,'dodge',0,'fill','transparent')
@@ -206,7 +206,7 @@ for i=1:height(d);
     end
 end
 
-Grin1 = join(Key,Grin1);
+% Grin1 = join(Key,Grin1);
 
 g=gramm('x',Grin1.Group,'y',Grin1.colocPercent*100,'color',Grin1.Group);
 g.stat_violin('normalization','width','half',0,'dodge',0,'fill','transparent')
@@ -261,7 +261,7 @@ for i=1:height(d);
     end
 end
 
-ITPKA = join(Key,ITPKA);
+% ITPKA = join(Key,ITPKA);
 
 g=gramm('x',ITPKA.Group,'y',ITPKA.colocPercent*100,'color',ITPKA.Group);
 g.stat_violin('normalization','width','half',0,'dodge',0,'fill','transparent')
@@ -316,7 +316,7 @@ for i=1:height(d);
     end
 end
 
-PDYN = join(Key,PDYN);
+% PDYN = join(Key,PDYN);
 
 g=gramm('x',PDYN.Group,'y',PDYN.colocPercent*100,'color',PDYN.Group);
 g.stat_violin('normalization','width','half',0,'dodge',0,'fill','transparent')
