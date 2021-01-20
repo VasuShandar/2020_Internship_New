@@ -20,6 +20,14 @@ Options.RedCellThreshold = 10000;
 Options.GreenCellThreshold = 4500;
 Options.AreaFilter = [100 800];
 
+tiff_info = imfinfo('1.19\ms1_1b_s3_L'); % return tiff structure, one element per image
+im = imread('1.19\ms1_1b_s3_L', 1) ; % read in first image
+%concatenate each successive tiff to tiff_stack
+for ii = 2 : size(tiff_info, 1)
+    temp_tiff = imread('ms1_1b_s3_L', ii);
+    im = cat(3 , im, temp_tiff);
+end
+X = RNAScopeFiltering(im(:,:,1), Options);
 % Analysis Folder 
 d=dir('.\To Analyse Images\PDE10A');
 d=d(3:end);
