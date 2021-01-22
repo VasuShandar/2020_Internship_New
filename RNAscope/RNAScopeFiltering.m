@@ -39,8 +39,8 @@ if ~isfield(Options, 'AreaFilter')
    Options.AreaFilter =[150 1500];
 end 
     
-im = (imread(fname));
-[~,imName] = fileparts(fname);
+im = (fname);
+% [~,imName] = fileparts(fname);
 %% Original Unedited Figure
 if Options.ShowAnalysisFigures == 1
     figure('Color','k')
@@ -87,13 +87,13 @@ if Options.ShowAnalysisFigures == 1
 end 
 
 %% Extract Red Channel for Signal Segmentation
-imgred = im(:,:,1);
+imgred = im(:,:,3);
 
 %% Extract Green Channel for Signal Segmentation
 imggreen = im(:,:,2);
 
 %% Extract Far Red Channel for Signal Segmentation
-% imgFarRed = im(:,:,4);
+ imgFarRed = im(:,:,4);
 
 %% Green & Red per Cell (clever trick to use the strel function to
 % approximate a circle)
@@ -171,8 +171,8 @@ redCellCounts=(MergeCells+redCells);
 greenCellCounts=greenCells;
 
 % Extract ID from the filename somehow. This will be unique to experiments.
-[str tok]=strtok(fname,'_');
-ID=categorical({tok(2:5)});
+%[str tok]=strtok(fname,'_');
+%ID=categorical({tok(2:5)});
 
-RNAScopeFiltering = table(ID, PercentMergeCells, greenperredCell, greenperOtherCell, redCellCounts, greenCellCounts);
+RNAScopeFiltering = table(PercentMergeCells, greenperredCell, greenperOtherCell, redCellCounts, greenCellCounts);
 end 

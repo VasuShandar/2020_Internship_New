@@ -1,0 +1,26 @@
+%% Code to Import Phillip RNAScope Images and Produce Analysis from RNAScope Filtering
+
+Options.DiskSize = 20;
+Options.ShowAnalysisFigures = 1;
+Options.ShowFinalFigure = 1;
+Options.Radius = 20;
+Options.RedCellThreshold = 10000;
+Options.GreenCellThreshold = 4500;
+Options.AreaFilter = [100 800];
+
+tiff_info = imfinfo('ms1_1b_s3_L.tif'); % return tiff structure, one element per image
+[im, cmap] = imread('ms1_1b_s3_L.tif') ; % read in first image
+RGB = ind2rgb(im,cmap);
+imshow(RGB(:,:,1));
+
+for ii = 2 : size(tiff_info, 1)
+    [temp_tiff, cmap] = imread('ms1_1b_s3_L.tif', ii);
+    im = cat(3 , im, temp_tiff);
+end
+%concatenate each successive tiff to tiff_stack
+
+rgbImage = cat(3, im(:,:,1), im(:,:,2), im(:,:,3), im(:,:,4));
+
+RGB = ind2rgb(im,cmap);
+
+X = RNAScopeFiltering(rgbImage, Options);
