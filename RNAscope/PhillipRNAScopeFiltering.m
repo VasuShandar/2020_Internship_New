@@ -9,7 +9,7 @@
 % 'Radius', 'RedCellThreshold', 'GreenCellThreshold', 'AreaFilter']
 
 
-function RNAScopeFiltering = RNAScopeFiltering(fname, Options)
+function RNAScopeFiltering = PhillipRNAScopeFiltering(fname, Options)
 
 if ~isfield(Options, 'DiskSize')
     Options.DiskSize = 40;
@@ -35,32 +35,43 @@ if ~isfield(Options, 'GreenCellThreshold')
    Options.GreenCellThreshold = 40000;
 end
 
+if ~isfield(Options, 'FarRedCellThreshold')
+   Options.FarRedCellThreshold = 40000;
+end
+
 if ~isfield(Options, 'AreaFilter')
-   Options.AreaFilter =[150 1500];
+   Options.AreaFilter =[250 2500];
 end 
     
-im = (fname);
+[imR, cmap] = imread(fname, 1) ; % read in first image
+[imG, cmap] = imread(fname, 2) ; % read in first image
+[imB, cmap] = imread(fname, 3) ; % read in first image
+[imFR, cmap] = imread(fname, 4) ; % read in first image
 % [~,imName] = fileparts(fname);
 %% Original Unedited Figure
 if Options.ShowAnalysisFigures == 1
     figure('Color','k')
+    im=imread(fname);
     f = imshow(im);
 end 
 
 %% Extract Blue Channel for Dapi Segmentation
-imgblue = im(:,:,3); % blue, nuclei only signal
 
 % Subtract the uneven background from the image
 se = strel('disk',Options.DiskSize);
-imgblue = imtophat(imgblue,se);
+imgblue = imtophat(imB,se);
 
 % Binarize Image
-bw_blue = imbinarize(imgblue);
+bw_blue = imbinarize(imgblue,'adaptive','ForegroundPolarity','bright');
+%bw_blue = imbinarize(imgblue);
 % f = imshow(bw_blue);
 
 % % Remove Clumping
 bw_blue = bwareafilt(bw_blue,Options.AreaFilter);
 %f = imshow(bw_blue);
+
+se = strel('disk',3);
+bw_blue = imerode(bw_blue,se);
 
 % Look for connected components
 cc_blue = bwconncomp(bw_blue, 8);
@@ -87,13 +98,13 @@ if Options.ShowAnalysisFigures == 1
 end 
 
 %% Extract Red Channel for Signal Segmentation
-imgred = im(:,:,3);
+imgred = imR;
 
 %% Extract Green Channel for Signal Segmentation
-imggreen = im(:,:,2);
+imggreen = imG;
 
 %% Extract Far Red Channel for Signal Segmentation
- imgFarRed = im(:,:,4);
+imgfarred = imFR;
 
 %% Green & Red per Cell (clever trick to use the strel function to
 % approximate a circle)
@@ -112,6 +123,7 @@ J = J(distIdx);
 %% Prealocate Arrays for Signal Quantification 
 red_Size = zeros(length(centroids),1);
 green_Size = zeros(length(centroids),1);
+farred_Size = zeros(length(centroids),1);
 red = zeros(length(centroids),length(I),'uint8');
 green = zeros(length(centroids),length(I),'uint8');
 blue = zeros(length(centroids),length(I),'uint8');
@@ -159,17 +171,19 @@ end
 
 RedCellThresh = Options.RedCellThreshold;
 GreenCellThresh = Options.GreenCellThreshold;
-BlueCellThresh = Options.BlueCellThreshold;
-FarredCellThresh = Options.FarredCellThreshold;
+%BlueCellThresh = Options.BlueCellThreshold;
+FarredCellThresh = Options.FarRedCellThreshold;
 
+rgbImage = cat(3, imR, imG, imFR);
 
 % Insert Circles
- I=insertShape(im,'circle',[centroids(red_Size>RedCellThresh,:) cell_radious(red_Size>RedCellThresh)],'Color','red','LineWidth',2);
+ I=insertShape(rgbImage,'circle',[centroids(red_Size>RedCellThresh,:) cell_radious(red_Size>RedCellThresh)],'Color','red','LineWidth',2);
  I=insertShape(I,'circle',[centroids(green_Size>GreenCellThresh,:) cell_radious(green_Size>GreenCellThresh)],'Color','green','LineWidth',2);
- I=insertShape(im,'circle',[centroids(blue_Size>RedCellThresh,:) cell_radious(blue_Size>BlueCellThresh)],'Color','blue','LineWidth',2);
- I=insertShape(im,'circle',[centroids(farred_Size>FarredCellThresh,:) cell_radious(Farred_Size>FarredCellThresh)],'Color','yellow','LineWidth',2);
+ I=insertShape(I,'circle',[centroids(green_Size>GreenCellThresh & red_Size>RedCellThresh,:) cell_radious(green_Size>GreenCellThresh & red_Size>RedCellThresh,:)],'Color','yellow','LineWidth',2);
 
- I=insertShape(I,'circle',[centroids(blue_Size>BlueCellThresh & red_Size>GreenCellThresh,:) cell_radious(red_Size>RedCellThresh & blue_Size>BlueCellThresh)],'Color','yellow','LineWidth',2);
+ %I=insertShape(im,'circle',[centroids(blue_Size>RedCellThresh,:) cell_radious(blue_Size>BlueCellThresh)],'Color','blue','LineWidth',2);
+ I=insertShape(I,'circle',[centroids(farred_Size>FarredCellThresh,:) cell_radious(farred_Size>FarredCellThresh)],'Color','cyan','LineWidth',2);
+
  I=insertShape(I,'circle',[centroids(blue_Size>BlueCellThresh & green_Size>GreenCellThresh,:) cell_radious(blue_Size>BlueCellThresh & green_Size>GreenCellThresh)],'Color','purple','LineWidth',2);
  
 if Options.ShowFinalFigure == 1
