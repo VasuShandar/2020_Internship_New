@@ -11,6 +11,7 @@
 
 function RNAScopeFiltering = PhillipRNAScopeFiltering(fname, Options)
 
+
 if ~isfield(Options, 'DiskSize')
     Options.DiskSize = 40;
 end 
@@ -96,7 +97,7 @@ if Options.ShowAnalysisFigures == 1
     hold on
     viscircles(centroids,cell_radious,'LineStyle','-','LineWidth',.1,'Color','cyan');
 end 
-
+blue_cells = sum(cell_radious == 20);
 %% Extract Red Channel for Signal Segmentation
 imgred = imR;
 
@@ -177,43 +178,100 @@ FarredCellThresh = Options.FarRedCellThreshold;
 rgbImage = cat(3, imR, imG, imFR);
 
 % Insert Circles
- I=insertShape(rgbImage,'circle',[centroids(red_Size>RedCellThresh,:) cell_radious(red_Size>RedCellThresh)],'Color','red','LineWidth',2);
- I=insertShape(I,'circle',[centroids(green_Size>GreenCellThresh,:) cell_radious(green_Size>GreenCellThresh)],'Color','green','LineWidth',2);
- I=insertShape(I,'circle',[centroids(green_Size>GreenCellThresh & red_Size>RedCellThresh,:) cell_radious(green_Size>GreenCellThresh & red_Size>RedCellThresh,:)],'Color','yellow','LineWidth',2);
+ R=insertShape(rgbImage,'circle',[centroids(red_Size>RedCellThresh,:) cell_radious(red_Size>RedCellThresh)],'Color','red','LineWidth',2);
 
- %I=insertShape(im,'circle',[centroids(blue_Size>RedCellThresh,:) cell_radious(blue_Size>BlueCellThresh)],'Color','blue','LineWidth',2);
- I=insertShape(I,'circle',[centroids(farred_Size>FarredCellThresh,:) cell_radious(farred_Size>FarredCellThresh)],'Color','cyan','LineWidth',2);
-
- I=insertShape(I,'circle',[centroids(blue_Size>BlueCellThresh & green_Size>GreenCellThresh,:) cell_radious(blue_Size>BlueCellThresh & green_Size>GreenCellThresh)],'Color','purple','LineWidth',2);
+ G=insertShape(rgbImage,'circle',[centroids(green_Size>GreenCellThresh,:) cell_radious(green_Size>GreenCellThresh)],'Color','green','LineWidth',2);
+ FR=insertShape(rgbImage,'circle',[centroids(farred_Size>FarredCellThresh,:) cell_radious(farred_Size>FarredCellThresh)],'Color','blue','LineWidth',2);
  
+ G_R_circles=insertShape(R,'circle',[centroids(green_Size>GreenCellThresh,:) cell_radious(green_Size>GreenCellThresh)],'Color','green','LineWidth',2);
+ FR_G_circles=insertShape(G,'circle',[centroids(farred_Size>FarredCellThresh,:) cell_radious(farred_Size>FarredCellThresh)],'Color','blue','LineWidth',2);
+ FR_R_circles=insertShape(R,'circle',[centroids(farred_Size>FarredCellThresh,:) cell_radious(farred_Size>FarredCellThresh)],'Color','blue','LineWidth',2);
+ FR_R_G_circles=insertShape(G_R_circles,'circle',[centroids(farred_Size>FarredCellThresh,:) cell_radious(farred_Size>FarredCellThresh)],'Color','blue','LineWidth',2);
+
+ R_G_intersect =insertShape(G_R_circles,'circle',[centroids(green_Size>GreenCellThresh & red_Size>RedCellThresh,:) cell_radious(green_Size>GreenCellThresh & red_Size>RedCellThresh,:)],'Color','yellow','LineWidth',2);
+ R_FR_intersect = insertShape(FR_R_circles,'circle',[centroids(red_Size>RedCellThresh & farred_Size > FarredCellThresh,:) cell_radious(red_Size>RedCellThresh & farred_Size > FarredCellThresh,:)],'Color','magenta','LineWidth',2);
+ G_FR_intersect =insertShape(FR_G_circles,'circle',[centroids(green_Size>GreenCellThresh & farred_Size > FarredCellThresh,:) cell_radious(green_Size>GreenCellThresh & farred_Size > FarredCellThresh,:)],'Color','yellow','LineWidth',2);
+ R_G_FR_intersect=insertShape(FR_R_G_circles,'circle',[centroids(green_Size>GreenCellThresh & red_Size>RedCellThresh & farred_Size > FarredCellThresh,:) cell_radious(green_Size>GreenCellThresh & red_Size>RedCellThresh & farred_Size > FarredCellThresh,:)],'Color','yellow','LineWidth',2);
+
+if Options.ShowAnalysisFigures == 1 
+    figure;
+    solo_red = imshow(R);
+    title('Solo A2A' );
+    figure;
+    solo_green = imshow(G);
+    title('Solo pdyn' );
+    figure;
+    solo_farred = imshow(FR);
+    title('Solo 5ht1b' );
+    figure;
+    R_G_intersect_image = imshow(R_G_intersect);
+    title('A2A-pdyn Intersect' );
+    figure;
+    R_FR_intersect_image = imshow(R_FR_intersect);
+    title('pdyn-5ht1b Intersect' );
+    figure;
+    G_FR_intersect_image = imshow(G_FR_intersect);
+    title('A2A-5ht1b Intersect' );
+    figure;
+    R_G_FR_intersect_image = imshow(R_G_FR_intersect);
+    title('pdyn-5ht1b-A2A Intersect' );
+end 
+%analysis_images = cat(3, solo_red, solo_green, solo_farred, R_G_intersect_image, R_FR_intersect_image, G_FR_intersect_image, R_G_FR_intersect_image);
+%analysis_images_1 = [R, R, R; G; FR; R_G_intersect; R_FR_intersect; G_FR_intersect; R_G_FR_intersect];
+%imshow(analysis_images_1(:,:,5));
+
+%imwrite(analysis_images_1, "image_one.tif");
+
 if Options.ShowFinalFigure == 1
     figure;
-    f=imshow(I);
+    f=imshow(R_G_FR_intersect);
 end 
 
 % Final Numbers
-AllMergeCells=sum(red_Size>RedCellThresh & blue_Size>BlueCellThresh & green_Size>GreenCellThresh & farred_Size>FarredCellThresh);
-RedGreenBlueMergeCells=sum(red_Size>RedCellThresh & blue_Size>BlueCellThresh & green_Size>GreenCellThresh);
-RedFarredBlueMergeCells=sum(red_Size>RedCellThresh & blue_Size>BlueCellThresh & farred_Size>FarredCellThresh);
-GreenFarredBlueMergeCells=sum(blue_Size>BlueCellThresh & green_Size>GreenCellThresh & farred_Size>FarredCellThresh);
+AllMergeCells=sum(red_Size>RedCellThresh & green_Size>GreenCellThresh & farred_Size>FarredCellThresh);
 
-greenCells=sum(green_Size>GreenCellThresh & blue_Size<BlueCellThresh);
-redCells=sum(red_Size>RedCellThresh & blue_Size<BlueCellThresh);
-farredCells=sum(farred_Size>FarredCellThresh & blue_Size<BlueCellThresh);
+greenCells=sum(green_Size>GreenCellThresh);
+redCells=sum(red_Size>RedCellThresh);
+farredCells=sum(farred_Size>FarredCellThresh);
 
-% PercentMergeCells=MergeCells/(MergeCells+redCells);
-greenperblueCell=mean(green_Size(blue_Size>BlueCellThresh));
-redperblueCell=mean(red_Size(blue_Size>BlueCellThresh));
-farredperblueCell=mean(farred_Size(blue_Size>BlueCellThresh));
+Percent_R = sum(red_Size>RedCellThresh) / blue_cells *100;
+Percent_G = sum(green_Size>GreenCellThresh) / blue_cells *100
+Percent_FR = sum(farred_Size>FarredCellThresh) / blue_cells *100
+Percent_R_G = sum(red_Size>RedCellThresh & green_Size>GreenCellThresh) / blue_cells *100;
+Percent_R_FR = sum(red_Size>RedCellThresh & farred_Size>FarredCellThresh) / blue_cells *100;
+Percent_G_FR = sum(green_Size>GreenCellThresh & farred_Size>FarredCellThresh) / blue_cells *100;
+Percent_R_G_FR = AllMergeCells/(blue_cells) * 100;
 
-%redCellCounts=(MergeCells+redCells);
-%greenCellCounts=greenCells;
+G_R_Intersect = sum(red_Size>RedCellThresh & green_Size>GreenCellThresh) / (redCells + greenCells) *100;
+FR_R_Intersect = sum(red_Size>RedCellThresh & farred_Size>FarredCellThresh) / (redCells + farredCells) *100;
+G_FR_Intersect = sum(green_Size>GreenCellThresh & farred_Size>FarredCellThresh) / (greenCells + farredCells) *100;
 
 % Extract ID from the filename somehow. This will be unique to experiments.
-%[str tok]=strtok(fname,'_');
-%ID=categorical({tok(2:5)});
+[pathstr,name,ext] = fileparts(fname)
+
 % need MergeCells between: (green, red, blue), (green, farred, blue), (red,
 % farred, blue)
 
-RNAScopeFiltering = table(AllMergeCells, RedGreenBlueMergeCells, RedFarredBlueMergeCells, GreenFarredBlueMergeCells, greenperblueCell, redperblueCell, farredperblueCell);
+A2A_pdyn_5ht1b_cell_count = AllMergeCells; 
+total_cell_count = blue_cells; 
+cell_count_A2A = redCells;
+cell_count_pdyn = greenCells;
+cell_count_5ht1b = farredCells;
+percent_A2A = Percent_R;
+percent_pdyn = Percent_G;
+percent_5ht1b = Percent_FR;
+percent_total_A2A_pdyn = Percent_R_G;
+percent_total_A2A_5ht1b = Percent_R_FR;
+percent_total_pdyn_5ht1b = Percent_G_FR;
+percent_total_pdyn_5ht1b_A2A = Percent_R_G_FR;
+percent_intersect_pdyn_A2A = G_R_Intersect;
+percent_intersect_pdyn_5ht1b = G_FR_Intersect;
+percent_intersect_A2A_5ht1b = FR_R_Intersect;
+
+T = {name, A2A_pdyn_5ht1b_cell_count, total_cell_count, cell_count_A2A, cell_count_pdyn, cell_count_5ht1b, percent_A2A, percent_pdyn, percent_5ht1b, percent_total_A2A_pdyn, percent_total_A2A_5ht1b, percent_total_pdyn_5ht1b, percent_total_pdyn_5ht1b_A2A, percent_intersect_pdyn_A2A, percent_intersect_A2A_5ht1b, percent_intersect_pdyn_5ht1b};
+L = cell2table(T,...
+'VariableNames',{'name', 'A2A_pdyn_5ht1b_cell_count', 'total_cell_count', 'cell_count_A2A', 'cell_count_pdyn', 'cell_count_5ht1b', 'percent_A2A', 'percent_pdyn', 'percent_5ht1b', 'percent_total_A2A_pdyn', 'percent_total_A2A_5ht1b', 'percent_total_pdyn_5ht1b', 'percent_total_pdyn_5ht1b_A2A', 'percent_intersect_pdyn_A2A', 'percent_intersect_A2A_5ht1b', 'percent_intersect_pdyn_5ht1b'});
+
+RNAScopeFiltering = L;
+
 end 

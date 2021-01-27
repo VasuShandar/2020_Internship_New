@@ -14,9 +14,9 @@ close all
 try
 
 % Analysis Folder 
-d=dir('.\To Analyse Images\PDE10A');
+d=dir('.\1.19');
 d=d(3:end);
-f=('.\Analysed Images\PDE10A');
+f=('.\Phillip Analysed Images');
 
 for i=1:height(d);
     disp(['Analysing ' d(i).name]);
