@@ -25,7 +25,4 @@ for i=1:size(d)
 end
 writetable(M, 'ImageStatistics.csv');
 
-tiff_info = imfinfo('ms1_1b_s3_L.tif'); % return tiff structure, one element per image
-fname="C:\Users\vasus\OneDrive\Documents\GitHub\2020_Internship_New\RNAscope\1.19\ms1_1b_s3_L.tif";
 
-X = PhillipRNAScopeFiltering(fname, Options);
